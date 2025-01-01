@@ -6,7 +6,6 @@ import (
 	"technical-test-go/models/domain"
 )
 
-// OrderRepository defines the methods for interacting with the orders table.
 type OrderRepository interface {
 	Save(ctx context.Context, tx *sqlx.Tx, order domain.Order) (domain.Order, error)
 	FindById(ctx context.Context, tx *sqlx.Tx, orderId int) (domain.OrderWithDetails, error)

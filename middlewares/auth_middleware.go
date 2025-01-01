@@ -21,21 +21,18 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Extract token string from "Bearer <token>" format
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == authHeader {
 			helpers.WriteResponse(w, http.StatusUnauthorized, "Invalid Authorization header format", nil)
 			return
 		}
 
-		// Validate JWT token
 		token, err := auth.ValidateJWT(tokenString)
 		if err != nil || !token.Valid {
 			helpers.WriteResponse(w, http.StatusUnauthorized, "Invalid or expired token", nil)
 			return
 		}
 
-		// If the token is valid, extract claims and pass to the next handler
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			ctx := context.WithValue(r.Context(), UserContextKey, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))

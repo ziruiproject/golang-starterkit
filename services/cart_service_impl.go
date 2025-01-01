@@ -30,7 +30,6 @@ func NewCartService(db *sqlx.DB, cartRepository repositories.CartRepository, ord
 	}
 }
 
-// Create a new cart
 func (service *CartServiceImpl) Create(ctx context.Context, request web.CartCreateRequest) (web.CartResponse, error) {
 	cart := domain.Cart{
 		UserId:    request.UserId,
@@ -61,7 +60,6 @@ func (service *CartServiceImpl) Update(ctx context.Context, request web.CartUpda
 	return service.FindById(ctx, userCart.Id)
 }
 
-// Delete a cart item
 func (service *CartServiceImpl) Delete(ctx context.Context, cartId int) error {
 	_, err := service.CartRepository.FindById(ctx, service.DB, cartId)
 	if err != nil {
@@ -76,7 +74,6 @@ func (service *CartServiceImpl) Delete(ctx context.Context, cartId int) error {
 	return nil
 }
 
-// Find all cart items for all users (Admin use case)
 func (service *CartServiceImpl) FindAll(ctx context.Context) ([]web.CartResponse, error) {
 	carts, err := service.CartRepository.FindAll(ctx, service.DB)
 	if err != nil {
@@ -216,7 +213,6 @@ func (service *CartServiceImpl) Checkout(ctx context.Context, userId int) (web.C
 	return response, nil
 }
 
-// Helper function to map cart items to CartResponses
 func (service *CartServiceImpl) mapToCartResponses(ctx context.Context, carts []domain.Cart) ([]web.CartResponse, error) {
 	cartResponses := []web.CartResponse{}
 	userCartMap := make(map[int][]web.CartItem)

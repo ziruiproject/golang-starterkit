@@ -15,7 +15,6 @@ func NewBankRepository() *BankRepositoryImpl {
 	return &BankRepositoryImpl{}
 }
 
-// Save creates a new bank account within a transaction
 func (repository BankRepositoryImpl) Save(ctx context.Context, tx *sqlx.Tx, bank domain.Bank) (domain.Bank, error) {
 	SQL := `INSERT INTO bank_accounts(user_id, balance, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING id`
 
@@ -29,7 +28,6 @@ func (repository BankRepositoryImpl) Save(ctx context.Context, tx *sqlx.Tx, bank
 	return bank, nil
 }
 
-// FindById retrieves a bank account by its ID within a transaction
 func (repository BankRepositoryImpl) FindById(ctx context.Context, tx *sqlx.Tx, id int) (domain.Bank, error) {
 	SQL := `SELECT id, user_id, balance, created_at, updated_at FROM bank_accounts WHERE id = $1`
 
@@ -43,7 +41,6 @@ func (repository BankRepositoryImpl) FindById(ctx context.Context, tx *sqlx.Tx, 
 	return bank, nil
 }
 
-// FindAll retrieves all bank accounts within a transaction
 func (repository BankRepositoryImpl) FindAll(ctx context.Context, tx *sqlx.Tx) ([]domain.Bank, error) {
 	SQL := `SELECT id, user_id, balance, created_at, updated_at FROM bank_accounts`
 
@@ -56,7 +53,6 @@ func (repository BankRepositoryImpl) FindAll(ctx context.Context, tx *sqlx.Tx) (
 	return banks, nil
 }
 
-// Update modifies the bank account balance within a transaction
 func (repository BankRepositoryImpl) Update(ctx context.Context, tx *sqlx.Tx, bank domain.Bank) (domain.Bank, error) {
 	SQL := `SELECT balance FROM bank_accounts WHERE id = $1 FOR UPDATE`
 	var currentBalance int64
@@ -75,7 +71,6 @@ func (repository BankRepositoryImpl) Update(ctx context.Context, tx *sqlx.Tx, ba
 	return updatedBank, nil
 }
 
-// Delete removes a bank account by its ID within a transaction
 func (repository BankRepositoryImpl) Delete(ctx context.Context, tx *sqlx.Tx, id int) error {
 	SQL := `DELETE FROM bank_accounts WHERE id = $1`
 
@@ -87,9 +82,7 @@ func (repository BankRepositoryImpl) Delete(ctx context.Context, tx *sqlx.Tx, id
 	return nil
 }
 
-// Transfer performs a money transfer between two accounts within a transaction
 func (repository BankRepositoryImpl) Transfer(ctx context.Context, tx *sqlx.Tx, transfer domain.BankTransfer) error {
-	// Lock the rows for the accounts involved
 	var fromBalance int64
 	err := tx.GetContext(ctx, &fromBalance, `SELECT balance FROM bank_accounts WHERE user_id = $1 FOR UPDATE`, transfer.FromAccountId)
 	if err != nil {
@@ -104,13 +97,11 @@ func (repository BankRepositoryImpl) Transfer(ctx context.Context, tx *sqlx.Tx, 
 		return fmt.Errorf("failed to lock receiver account: %w", err)
 	}
 
-	// Check if the sender has enough balance
 	if fromBalance < transfer.Amount {
 		tx.Rollback()
 		return fmt.Errorf("insufficient balance in sender's account")
 	}
 
-	// Perform the debit and credit operations
 	_, err = tx.ExecContext(ctx, `UPDATE bank_accounts SET balance = balance - $1 WHERE user_id = $2`, transfer.Amount, transfer.FromAccountId)
 	if err != nil {
 		tx.Rollback()
@@ -123,7 +114,6 @@ func (repository BankRepositoryImpl) Transfer(ctx context.Context, tx *sqlx.Tx, 
 		return fmt.Errorf("failed to credit amount: %w", err)
 	}
 
-	// Commit the transaction
 	err = tx.Commit()
 	if err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)

@@ -116,7 +116,7 @@ func (controller *ProductControllerImpl) FindById(writer http.ResponseWriter, re
 }
 
 func (controller *ProductControllerImpl) FindBySearch(writer http.ResponseWriter, request *http.Request) {
-	search := request.URL.Query().Get("product")
+	search := request.URL.Query().Get("query")
 
 	if search == "" {
 		helpers.WriteResponse(writer, http.StatusBadRequest, "Search query is required", nil)

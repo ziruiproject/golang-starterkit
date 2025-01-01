@@ -13,7 +13,7 @@ func GetUserIDFromJWT(r *http.Request) (int, error) {
 		return 0, fmt.Errorf("invalid or missing user claims")
 	}
 
-	userID, ok := userClaims["user_id"].(float64) // Typically float64 in JWT claims
+	userID, ok := userClaims["user_id"].(float64)
 	if !ok {
 		return 0, fmt.Errorf("user_id not found in claims")
 	}

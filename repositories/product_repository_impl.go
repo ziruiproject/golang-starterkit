@@ -19,13 +19,15 @@ func NewProductRepository() ProductRepository {
 }
 
 func (repository *productRepositoryImpl) Save(ctx context.Context, db *sqlx.DB, product domain.Product) (domain.Product, error) {
+
+	log.Println(product)
 	SQL := `INSERT INTO products (name, description, price, user_id, created_at, updated_at)
-			VALUES ($1, $2, $3, $4, $5, $6)`
-	err := db.QueryRowxContext(ctx, SQL, product.Name, product.Description, product.Price, product.UserID, time.Now(), time.Now()).
-		Scan(&product.Id, &product.CreatedAt, &product.UpdatedAt)
+			VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+	err := db.QueryRowxContext(ctx, SQL, product.Name, product.Description, product.Price, product.UserID, time.Now(), time.Now()).Scan(&product.Id)
 	if err != nil {
 		return domain.Product{}, fmt.Errorf("failed to save product: %w", err)
 	}
+
 	return product, nil
 }
 
@@ -76,11 +78,11 @@ func (repository *productRepositoryImpl) FindBySearch(ctx context.Context, db *s
 
 	var products []domain.Product
 
-	search = strings.Trim(search, `"`) // Remove quotes
-	search = strings.TrimSpace(search) // Remove leading/trailing spaces
+	search = strings.Trim(search, `"`)
+	search = strings.TrimSpace(search)
 
 	searchPattern := fmt.Sprintf("%%%s%%", search)
-	log.Printf("Search query: %s", searchPattern) // Log the search pattern
+	log.Printf("Search query: %s", searchPattern)
 
 	err := db.SelectContext(ctx, &products, SQL, searchPattern, searchPattern)
 	if err != nil {
@@ -91,7 +93,7 @@ func (repository *productRepositoryImpl) FindBySearch(ctx context.Context, db *s
 		return nil, errors.New("Product Not Found")
 	}
 
-	log.Printf("Found %d products", len(products)) // Log the number of products found
+	log.Printf("Found %d products", len(products))
 	return products, nil
 }
 

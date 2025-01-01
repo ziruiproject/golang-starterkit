@@ -56,36 +56,36 @@ func main() {
 	authController := controllers.NewAuthController(authService)
 
 	// Initialize Product components
-	productRepository := repositories.NewProductRepository() // Assuming the repository constructor takes *sqlx.DB
+	productRepository := repositories.NewProductRepository()
 	productService := services.NewProductService(db, productRepository, userRepository)
 	productController := controllers.NewProductController(productService)
 
 	// Initialize Product components
-	bankRepository := repositories.NewBankRepository() // Assuming the repository constructor takes *sqlx.DB
+	bankRepository := repositories.NewBankRepository()
 	bankService := services.NewBankService(db, bankRepository, userRepository)
 	bankController := controllers.NewBankController(bankService)
 
 	orderRepository := repositories.NewOrderRepository()
 
 	// Initialize Product components
-	cartRepository := repositories.NewCartRepository() // Assuming the repository constructor takes *sqlx.DB
+	cartRepository := repositories.NewCartRepository()
 	cartService := services.NewCartService(db, cartRepository, orderRepository, productService, userService, bankService)
 	cartController := controllers.NewCartController(cartService)
 
 	router := chi.NewRouter()
 
 	// Middleware
-	router.Use(middleware.Logger)    // Log HTTP requests
-	router.Use(middleware.Recoverer) // Recover from panics
-	// User routes with ProtectedRoute middleware
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	// Protected user routes
 	router.Route("/api/users", func(r chi.Router) {
-		r.Use(middlewares.ProtectedRoute)  // Apply JWTMiddleware to protect all user routes
-		r.Get("/", userController.FindAll) // Get all users
-		r.Post("/", userController.Create)
-		r.Get("/{identifier}", userController.FindByIdentifier)     // Get user by identifier
-		r.Delete("/{userId}", userController.Delete)                // Delete user by userId
-		r.Put("/{userId}", userController.Update)                   // Update user by userId
-		r.Get("/{userId}/products", productController.FindByUserId) // Find products by userId
+		r.Use(middlewares.ProtectedRoute)
+		r.Get("/", userController.FindAll)                      // Get all users
+		r.Post("/", userController.Create)                      // Create user
+		r.Get("/{identifier}", userController.FindByIdentifier) // Get user by identifier
+		r.Delete("/{userId}", userController.Delete)            // Delete user by userId
+		r.Put("/{userId}", userController.Update)               // Update user by userId
 	})
 
 	// Authentication routes (public)
@@ -96,30 +96,31 @@ func main() {
 	router.Get("/api/products/{productId}", productController.FindById) // Find product by productId
 	router.Get("/api/search", productController.FindBySearch)           // Search route using query parameter
 
-	// Protected product routes (wrapped with middleware)
+	// Protected product routes
 	router.Route("/api/products", func(r chi.Router) {
-		r.Use(middlewares.ProtectedRoute)                  // Apply JWTMiddleware to protect product routes
-		r.Get("/", productController.FindAll)              // Get all products
-		r.Post("/", productController.Create)              // Create a product
-		r.Put("/{productId}", productController.Update)    // Update a product
-		r.Delete("/{productId}", productController.Delete) // Delete a product
+		r.Use(middlewares.ProtectedRoute)
+		r.Get("/", productController.FindAll)                   // Get all products
+		r.Post("/", productController.Create)                   // Create a product
+		r.Put("/{productId}", productController.Update)         // Update a product
+		r.Delete("/{productId}", productController.Delete)      // Delete a product
+		r.Get("/user/{userId}", productController.FindByUserId) // Find products by userId
 	})
 
 	// Protected cart routes
 	router.Route("/api/carts", func(r chi.Router) {
-		r.Use(middlewares.ProtectedRoute)                          // Apply JWTMiddleware to protect cart routes
+		r.Use(middlewares.ProtectedRoute)
 		r.Get("/", cartController.FindAll)                         // Get all cart items
 		r.Post("/", cartController.Create)                         // Add item to cart
 		r.Put("/{cartId}", cartController.Update)                  // Update cart item by cartId
 		r.Delete("/{cartId}", cartController.Delete)               // Delete cart item by cartId
 		r.Get("/user/{userId}", cartController.FindByUserId)       // Get cart items by userId
-		r.Post("/user/{userId}/checkout", cartController.Checkout) // Get cart items by userId
+		r.Post("/user/{userId}/checkout", cartController.Checkout) // Checkou all items in cart by userId
 		r.Get("/{cartId}", cartController.FindById)                // Get cart item by cartId
 	})
 
 	// Protected bank routes
 	router.Route("/api/banks", func(r chi.Router) {
-		r.Use(middlewares.ProtectedRoute)               // Apply JWTMiddleware to protect bank routes
+		r.Use(middlewares.ProtectedRoute)
 		r.Post("/", bankController.CreateAccount)       // Create a new bank account
 		r.Get("/", bankController.GetAllAccounts)       // Get all bank accounts
 		r.Get("/{id}", bankController.GetAccountById)   // Get bank account by ID

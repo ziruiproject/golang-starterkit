@@ -25,22 +25,19 @@ func NewBankService(db *sqlx.DB, bankRepository repositories.BankRepository, use
 }
 
 func (service *BankServiceImpl) CreateAccount(ctx context.Context, request web.BankCreateAccountRequest) (web.BankResponse, error) {
-	// Start a transaction
 	tx, err := service.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return web.BankResponse{}, fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	// Ensure the transaction is committed or rolled back
 	defer func() {
 		if err != nil {
-			tx.Rollback() // Rollback on error
+			tx.Rollback()
 		} else {
-			err = tx.Commit() // Commit if no errors
+			err = tx.Commit()
 		}
 	}()
 
-	// Create the bank account
 	bank := domain.Bank{
 		UserId:    request.UserId,
 		Balance:   0,
@@ -48,7 +45,6 @@ func (service *BankServiceImpl) CreateAccount(ctx context.Context, request web.B
 		UpdateAt:  time.Now(),
 	}
 
-	// Fetch the user related to the bank account
 	user, err := service.UserRepository.FindById(ctx, service.DB, request.UserId)
 	if err != nil {
 		return web.BankResponse{}, fmt.Errorf("failed to fetch user: %w", err)
@@ -59,7 +55,6 @@ func (service *BankServiceImpl) CreateAccount(ctx context.Context, request web.B
 		return web.BankResponse{}, fmt.Errorf("failed to create account: %w", err)
 	}
 
-	// Return the response with the newly created bank account and user details
 	return web.BankResponse{
 		Id: createdBank.Id,
 		User: web.UserResponse{
@@ -73,28 +68,24 @@ func (service *BankServiceImpl) CreateAccount(ctx context.Context, request web.B
 }
 
 func (service *BankServiceImpl) UpdateAccount(ctx context.Context, id int, request web.BankUpdateRequest) (web.BankResponse, error) {
-	// Start a transaction
 	tx, err := service.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return web.BankResponse{}, fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	// Ensure the transaction is committed or rolled back
 	defer func() {
 		if err != nil {
-			tx.Rollback() // Rollback on error
+			tx.Rollback()
 		} else {
-			err = tx.Commit() // Commit if no errors
+			err = tx.Commit()
 		}
 	}()
 
-	// Fetch the bank account
 	bank, err := service.BankRepository.FindById(ctx, tx, id)
 	if err != nil {
 		return web.BankResponse{}, fmt.Errorf("account not found: %w", err)
 	}
 
-	// Update the bank account balance
 	bank.Balance = (bank.Balance + request.Balance)
 	bank.UpdateAt = time.Now()
 
@@ -102,19 +93,16 @@ func (service *BankServiceImpl) UpdateAccount(ctx context.Context, id int, reque
 		return web.BankResponse{}, fmt.Errorf("not enough balance")
 	}
 
-	// Update the bank account in the database
 	updatedBank, err := service.BankRepository.Update(ctx, tx, bank)
 	if err != nil {
 		return web.BankResponse{}, fmt.Errorf("failed to update account: %w", err)
 	}
 
-	// Fetch the user related to the bank account
 	user, err := service.UserRepository.FindById(ctx, service.DB, bank.UserId)
 	if err != nil {
 		return web.BankResponse{}, fmt.Errorf("failed to fetch user: %w", err)
 	}
 
-	// Return the response with the updated bank account and user details
 	return web.BankResponse{
 		Id: updatedBank.Id,
 		User: web.UserResponse{
@@ -128,18 +116,16 @@ func (service *BankServiceImpl) UpdateAccount(ctx context.Context, id int, reque
 }
 
 func (service *BankServiceImpl) DeleteAccount(ctx context.Context, id int) error {
-	// Start a transaction
 	tx, err := service.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	// Ensure the transaction is committed or rolled back
 	defer func() {
 		if err != nil {
-			tx.Rollback() // Rollback on error
+			tx.Rollback()
 		} else {
-			err = tx.Commit() // Commit if no errors
+			err = tx.Commit()
 		}
 	}()
 
@@ -158,12 +144,11 @@ func (service *BankServiceImpl) GetAccountById(ctx context.Context, id int) (web
 		return web.BankResponse{}, fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	// Ensure the transaction is committed or rolled back
 	defer func() {
 		if err != nil {
-			tx.Rollback() // Rollback on error
+			tx.Rollback()
 		} else {
-			err = tx.Commit() // Commit if no errors
+			err = tx.Commit()
 		}
 	}()
 
@@ -189,19 +174,17 @@ func (service *BankServiceImpl) GetAccountById(ctx context.Context, id int) (web
 	}, nil
 }
 
-func (service *BankServiceImpl) GetAllAccounts(ctx context.Context) ([]web.BankResponse, error) {
-	// Start a transaction
+func (service *BankServiceImpl) GetAllAccounts(ctx context.Context) ([]web.BankResponse, error) { // Start a transaction
 	tx, err := service.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	// Ensure the transaction is committed or rolled back
 	defer func() {
 		if err != nil {
-			tx.Rollback() // Rollback on error
+			tx.Rollback()
 		} else {
-			err = tx.Commit() // Commit if no errors
+			err = tx.Commit()
 		}
 	}()
 
@@ -233,18 +216,16 @@ func (service *BankServiceImpl) GetAllAccounts(ctx context.Context) ([]web.BankR
 }
 
 func (service *BankServiceImpl) Transfer(ctx context.Context, request web.BankTransferRequest) error {
-	// Start a transaction
 	tx, err := service.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	// Ensure the transaction is committed or rolled back
 	defer func() {
 		if err != nil {
-			tx.Rollback() // Rollback on error
+			tx.Rollback()
 		} else {
-			err = tx.Commit() // Commit if no errors
+			err = tx.Commit()
 		}
 	}()
 

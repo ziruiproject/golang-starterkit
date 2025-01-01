@@ -14,7 +14,6 @@ func NewOrderRepository() *OrderRepositoryImpl {
 	return &OrderRepositoryImpl{}
 }
 
-// Save creates a new order
 func (repository *OrderRepositoryImpl) Save(ctx context.Context, tx *sqlx.Tx, order domain.Order) (domain.Order, error) {
 	SQL := `INSERT INTO orders (user_id) VALUES ($1) RETURNING id, created_at, updated_at`
 	err := tx.GetContext(ctx, &order, SQL, order.UserID)
@@ -24,9 +23,7 @@ func (repository *OrderRepositoryImpl) Save(ctx context.Context, tx *sqlx.Tx, or
 	return order, nil
 }
 
-// SaveDetail creates an entry in the order_details table
 func (repository *OrderRepositoryImpl) SaveDetail(ctx context.Context, tx *sqlx.Tx, detail domain.OrderDetail) (domain.OrderDetail, error) {
-	// Prepare SQL for inserting order details
 	orderDetailsSQL := `INSERT INTO order_details (order_id, product_id, quantity, price)  
 						VALUES ($1, $2, $3, $4) RETURNING *`
 	_, err := tx.ExecContext(ctx, orderDetailsSQL, detail.OrderID, detail.ProductID, detail.Quantity, detail.Price)
@@ -36,9 +33,7 @@ func (repository *OrderRepositoryImpl) SaveDetail(ctx context.Context, tx *sqlx.
 	return detail, nil
 }
 
-// FindById retrieves an order by its ID
 func (repository *OrderRepositoryImpl) FindById(ctx context.Context, tx *sqlx.Tx, orderId int) (domain.OrderWithDetails, error) {
-	// Fetch the order
 	var order domain.Order
 	orderSQL := `SELECT * FROM orders WHERE id = $1`
 	err := tx.GetContext(ctx, &order, orderSQL, orderId)
@@ -46,7 +41,6 @@ func (repository *OrderRepositoryImpl) FindById(ctx context.Context, tx *sqlx.Tx
 		return domain.OrderWithDetails{}, fmt.Errorf("failed to find order: %w", err)
 	}
 
-	// Fetch the order details
 	var orderDetails []domain.OrderDetail
 	detailsSQL := `SELECT * FROM order_details WHERE order_id = $1`
 	err = tx.SelectContext(ctx, &orderDetails, detailsSQL, orderId)
@@ -60,7 +54,6 @@ func (repository *OrderRepositoryImpl) FindById(ctx context.Context, tx *sqlx.Tx
 	}, nil
 }
 
-// Delete removes an order by its ID
 func (repository *OrderRepositoryImpl) Delete(ctx context.Context, tx *sqlx.Tx, orderId int) error {
 	SQL := `DELETE FROM orders WHERE id = $1`
 	_, err := tx.ExecContext(ctx, SQL, orderId)

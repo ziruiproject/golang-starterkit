@@ -1,3 +1,67 @@
+### Database Schema
+
+___
+
+```postgresql
+create table users
+(
+    id       serial primary key,
+    name     varchar(255) not null,
+    email    varchar(255) not null unique,
+    password varchar(255) not null
+);
+
+create table products
+(
+    id          integer   default not null
+        constraint product_pkey primary key,
+    name        varchar(255)                        not null,
+    description text,
+    price       integer                             not null,
+    user_id     integer                             not null
+        constraint fk_user references users on delete cascade,
+    created_at  timestamp default CURRENT_TIMESTAMP not null,
+    updated_at  timestamp default CURRENT_TIMESTAMP not null
+);
+
+create table bank_accounts
+(
+    id         serial primary key,
+    user_id    integer                             not null 
+        unique references users on delete cascade,
+    balance    bigint    default 0                 not null,
+    created_at timestamp default CURRENT_TIMESTAMP not null,
+    updated_at timestamp default CURRENT_TIMESTAMP not null
+);
+
+create table carts
+(
+    id         serial primary key,
+    user_id    integer           not null references users on delete cascade
+        constraint fk_user references users on delete cascade,
+    product_id integer           not null references products on delete cascade
+        constraint fk_product references products on delete cascade,
+    quantity   integer default 1 not null
+);
+
+create table orders
+(
+    id         serial primary key,
+    user_id    integer not null references users,
+    created_at timestamp default now(),
+    updated_at timestamp default now()
+);
+
+create table order_details
+(
+    id         serial primary key,
+    order_id   integer        not null references orders,
+    product_id integer        not null references products,
+    quantity   integer        not null,
+    price      numeric(10, 2) not null
+);
+```
+
 ### Authentication Routes
 
 ---
@@ -1057,6 +1121,7 @@ This endpoint retrieves all products associated with a specific user by their `u
   ]
 }
 ```
+
 ---
 
 ### **Error Responses**

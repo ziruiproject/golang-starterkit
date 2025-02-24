@@ -3,7 +3,7 @@ package helpers
 import (
 	"encoding/json"
 	"net/http"
-	"technical-test-go/models/web"
+	"template-go/models/web"
 )
 
 func WriteResponse(writer http.ResponseWriter, code int, message string, data interface{}) {

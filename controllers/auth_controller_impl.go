@@ -3,9 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"technical-test-go/helpers"
-	"technical-test-go/models/web"
-	"technical-test-go/services"
+	"template-go/helpers"
+	"template-go/models/web"
+	"template-go/services"
 )
 
 type AuthControllerImpl struct {

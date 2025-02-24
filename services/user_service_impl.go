@@ -3,19 +3,19 @@ package services
 import (
 	"context"
 	"errors"
-	"github.com/jmoiron/sqlx"
-	"technical-test-go/auth"
-	"technical-test-go/models/domain"
-	"technical-test-go/models/web"
-	"technical-test-go/repositories"
+	"gorm.io/gorm"
+	"template-go/auth"
+	"template-go/models/domain"
+	"template-go/models/web"
+	"template-go/repositories"
 )
 
 type UserServiceImpl struct {
 	UserRepository repositories.UserRepository
-	DB             *sqlx.DB
+	DB             *gorm.DB
 }
 
-func NewUserService(db *sqlx.DB, userRepository repositories.UserRepository) UserService {
+func NewUserService(db *gorm.DB, userRepository repositories.UserRepository) UserService {
 	return &UserServiceImpl{
 		UserRepository: userRepository,
 		DB:             db,

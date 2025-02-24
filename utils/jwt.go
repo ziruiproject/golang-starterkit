@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"net/http"
-	"technical-test-go/middlewares"
+	"template-go/middlewares"
 )
 
 func GetUserIDFromJWT(r *http.Request) (int, error) {

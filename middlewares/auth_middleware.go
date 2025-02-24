@@ -5,8 +5,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"net/http"
 	"strings"
-	"technical-test-go/auth"
-	"technical-test-go/helpers"
+	"template-go/auth"
+	"template-go/helpers"
 )
 
 type contextKey string

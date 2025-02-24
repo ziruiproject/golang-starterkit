@@ -6,9 +6,9 @@ import (
 	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strconv"
-	"technical-test-go/helpers"
-	"technical-test-go/models/web"
-	"technical-test-go/services"
+	"template-go/helpers"
+	"template-go/models/web"
+	"template-go/services"
 )
 
 type UserControllerImpl struct {

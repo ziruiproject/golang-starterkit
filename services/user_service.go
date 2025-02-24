@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"technical-test-go/models/web"
+	"template-go/models/web"
 )
 
 type UserService interface {

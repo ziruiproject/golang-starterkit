@@ -1,8 +1,12 @@
 package domain
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type User struct {
+	gorm.Model
 	Id        int
 	Name      string
 	Email     string

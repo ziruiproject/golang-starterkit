@@ -1,3 +1,2 @@
-databases/*.db
 .env
-
+databases/database.db

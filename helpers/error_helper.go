@@ -1,12 +1,12 @@
 package helpers
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 )
 
 func PanicOnError(err error) {
 	if err != nil {
-		log.Println(err)
+		log.Error().Msgf("System error: %s", err)
 		panic(err)
 	}
 }

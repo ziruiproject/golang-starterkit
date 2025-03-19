@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi"
-	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strconv"
+	"template-go/commons/config"
 	"template-go/helpers"
 	"template-go/models/web"
 	"template-go/services"
@@ -13,13 +14,13 @@ import (
 
 type UserControllerImpl struct {
 	userService services.UserService
-	validate    *validator.Validate
+	sanitation  config.Sanitation
 }
 
-func NewUserController(userService services.UserService) UserController {
+func NewUserController(userService services.UserService, sanitation config.Sanitation) UserController {
 	return &UserControllerImpl{
 		userService: userService,
-		validate:    validator.New(),
+		sanitation:  sanitation,
 	}
 }
 
@@ -32,15 +33,16 @@ func (controller *UserControllerImpl) Create(writer http.ResponseWriter, request
 		return
 	}
 
-	err = controller.validate.Struct(userCreateRequest)
+	err = controller.sanitation.Validator.Struct(&userCreateRequest)
 	if err != nil {
-		helpers.WriteResponse(writer, http.StatusBadRequest, "Validation error", nil)
+		helpers.WriteResponse(writer, http.StatusUnprocessableEntity, "Validation error", nil)
 		return
 	}
+	controller.sanitation.Sanitizer.Sanitize(&userCreateRequest)
 
 	userResponse, err := controller.userService.Create(request.Context(), userCreateRequest)
 	if err != nil {
-		helpers.WriteResponse(writer, http.StatusInternalServerError, err.Error(), nil)
+		helpers.WriteResponse(writer, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
@@ -56,11 +58,12 @@ func (controller *UserControllerImpl) Update(writer http.ResponseWriter, request
 		return
 	}
 
-	err = controller.validate.Struct(userUpdateRequest)
+	err = controller.sanitation.Validator.Struct(&userUpdateRequest)
 	if err != nil {
-		helpers.WriteResponse(writer, http.StatusBadRequest, err.Error(), nil)
+		helpers.WriteResponse(writer, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
+	controller.sanitation.Sanitizer.Sanitize(&userUpdateRequest)
 
 	userId := chi.URLParam(request, "userId")
 	id, err := strconv.Atoi(userId)
@@ -68,7 +71,7 @@ func (controller *UserControllerImpl) Update(writer http.ResponseWriter, request
 
 	userResponse, err := controller.userService.Update(request.Context(), userUpdateRequest)
 	if err != nil {
-		helpers.WriteResponse(writer, http.StatusInternalServerError, err.Error(), nil)
+		helpers.WriteResponse(writer, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
@@ -89,38 +92,19 @@ func (controller *UserControllerImpl) Delete(writer http.ResponseWriter, request
 }
 
 func (controller *UserControllerImpl) FindAll(writer http.ResponseWriter, request *http.Request) {
+	params := request.Context().Value(httpin.Input).(*web.DefaultParams)
+	err := controller.sanitation.Validator.Struct(params)
+
+	if err != nil {
+		helpers.WriteResponse(writer, http.StatusUnprocessableEntity, "Validation error", err)
+	}
 	usersResponse, err := controller.userService.FindAll(request.Context())
 	if err != nil {
-		helpers.WriteResponse(writer, http.StatusInternalServerError, err.Error(), nil)
+		helpers.WriteResponse(writer, http.StatusUnprocessableEntity, err.Error(), nil)
 		return
 	}
 
 	helpers.WriteResponse(writer, http.StatusOK, "Users fetched successfully", usersResponse)
-}
-
-func (controller *UserControllerImpl) FindById(writer http.ResponseWriter, request *http.Request) {
-	userId := chi.URLParam(request, "identifier")
-	id, err := strconv.Atoi(userId)
-
-	userResponse, err := controller.userService.FindById(request.Context(), id)
-	if err != nil {
-		helpers.WriteResponse(writer, http.StatusInternalServerError, err.Error(), []interface{}{})
-		return
-	}
-
-	helpers.WriteResponse(writer, http.StatusOK, "User fetched successfully", userResponse)
-}
-
-func (controller *UserControllerImpl) FindByEmail(writer http.ResponseWriter, request *http.Request) {
-	email := chi.URLParam(request, "identifier")
-
-	userResponse, err := controller.userService.FindByEmail(request.Context(), email)
-	if err != nil {
-		helpers.WriteResponse(writer, http.StatusInternalServerError, err.Error(), nil)
-		return
-	}
-
-	helpers.WriteResponse(writer, http.StatusOK, "User fetched successfully", userResponse)
 }
 
 func (controller *UserControllerImpl) FindByIdentifier(writer http.ResponseWriter, request *http.Request) {
